@@ -85,7 +85,7 @@ int main(void) {
     setBlock(17,9,4); //e
     setBlock(18,9,5); //x
     setBlock(19,9,6); //t
-    const int DIFFICULTY=12; //how often pieces fall
+    const int DIFFICULTY=10; //how often pieces fall
     int gravityCount=0; //counter for gravity
     //tgm keeps a 4 piece history for fairness
     int history[4]={5,5,4,4}; //1=I, 2=O, 3=T, 4=S, 5=Z, 6=J, 7=L, 8=locked
@@ -95,6 +95,7 @@ int main(void) {
     int tempNext=0;  //next piece but without evenness correction
     int alreadyPressed=0; //turns to 1 if button has already been pressed that iteration
     int debounceCounter=0;
+    int dasCounter=0;
     int rotation=0; //rotation state: 0-3, 0-1, or 0 depending on the piece
     int lastRotation;
     int xOffset=4;
@@ -174,8 +175,12 @@ int main(void) {
             debounceCounter=0;
         }
         if ((debounceCounter < MOVEMENT_DELAY) && (key_is_down(KEY_UP) || key_is_down(KEY_DOWN) || key_is_down(KEY_LEFT) || key_is_down(KEY_RIGHT))) {
-            if (key_is_down(KEY_DOWN))
-                debounceCounter+=2;
+            if (key_is_down(KEY_LEFT) || key_is_down(KEY_RIGHT)) {
+                dasCounter++;
+                debounceCounter++;
+            }
+            else if (key_is_down(KEY_DOWN))
+                debounceCounter+=3;
             else
                 debounceCounter++;
         }
@@ -183,6 +188,15 @@ int main(void) {
             debounceCounter=0;
             alreadyPressed=0;
         }
+        
+        if ((key_is_down(KEY_LEFT) || key_is_down(KEY_RIGHT)) && dasCounter > (MOVEMENT_DELAY*1.5)) {
+            debounceCounter=0;
+            alreadyPressed=0;
+        }
+        else if (key_is_up(KEY_LEFT) && key_is_up(KEY_RIGHT)) {
+            dasCounter=0;
+        }
+
         if (key_is_down(KEY_A) && key_was_up(KEY_A)) {
             lastRotation=rotation;
             if (currentPiece==1 || currentPiece==3 || currentPiece==6 || currentPiece==7) {
@@ -411,4 +425,3 @@ void DMAFastCopy(void* source, void* dest, unsigned int count, unsigned int mode
         REG_DMA3CNT = count | mode;
     }
 }
-
